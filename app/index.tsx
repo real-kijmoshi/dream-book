@@ -1,12 +1,15 @@
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Animated, Modal, Pressable } from "react-native";
 import * as SQLite from "expo-sqlite";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { GestureHandlerRootView, PanGestureHandler } from "react-native-gesture-handler";
 import { AntDesign } from "@expo/vector-icons";
+import { useDay } from "@/hooks/useDay";
+import { useFocusEffect, useRouter } from "expo-router";
+import DreamCard from "@/components/DreamCard";
 
 const getWeekDays = (date: Date) => {
   const days = [];
-  const firstDayOfWeek = 0; // Sunday = 0
+  const firstDayOfWeek = 1; // Monday
   
   // Calculate current day of week
   const currentDay = date.getDay();
@@ -57,7 +60,10 @@ export default function App() {
   const [calendarVisible, setCalendarVisible] = useState(false);
   const [calendarYear, setCalendarYear] = useState(new Date().getFullYear());
   const [calendarMonth, setCalendarMonth] = useState(new Date().getMonth());
-  
+  const day = useDay(selectedDate);
+
+  const router = useRouter();
+
   const translateX = useRef(new Animated.Value(0)).current;
   const opacityAnim = useRef(new Animated.Value(1)).current;
   
@@ -69,23 +75,34 @@ export default function App() {
     setCurrentWeek(getWeekDays(currentViewDate));
   }, [currentViewDate]);
 
+
   const initDb = async () => {
     const db = await SQLite.openDatabaseAsync("database.db");
     await db.execAsync(`
-      CREATE TABLE IF NOT EXISTS dream (
+      CREATE TABLE IF NOT EXISTS dreams (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         date TEXT NOT NULL,
         name TEXT NOT NULL,
         description TEXT NOT NULL,
         mood TEXT NOT NULL,
         location TEXT NOT NULL,
-        weather TEXT NOT NULL,
+        coordinates TEXT NOT NULL,
         notes TEXT NOT NULL,
         tags TEXT NOT NULL,
         created_at TEXT NOT NULL
       );
     `);
   };
+
+  const refreshData = useCallback(() => {
+    setSelectedDate(date => new Date(date.getTime()));
+  }, []);
+  
+  useFocusEffect(
+    useCallback(() => {
+      refreshData();
+    }, [refreshData])
+  );
 
   const isToday = (date: Date) => {
     const today = new Date();
@@ -225,16 +242,41 @@ export default function App() {
           />
         </Animated.View>
       </PanGestureHandler>
+
       
       <View style={styles.dreamCard}>
+        {
+          day.length > 0 ? (
+            <FlatList
+              data={day}
+              keyExtractor={(item) => item.id.toString()}
+              renderItem={({ item }) => (
+                <DreamCard dream={item} />
+              )}
+              style={{ width: "100%" }}
+            />
+          ) : (
+            <Text style={styles.dreamText}>
+              No dreams recorded for this date.
+            </Text>
+          )
+        }
+        <TouchableOpacity 
+          style={styles.addButton}
+          onPress={() => router.push(`/modal?date=${selectedDate.toISOString()}`)}
+          >
+          <Text 
+            style={styles.addButtonText}>
+            Add Dream
+          </Text>
+        </TouchableOpacity>
+
+
         <Text style={styles.dateText}>
           {selectedDate.toDateString()}
         </Text>
-        <TouchableOpacity style={styles.addButton}>
-          <Text style={styles.addButtonText}>Add Dream</Text>
-        </TouchableOpacity>
       </View>
-      
+
       <Modal
         visible={calendarVisible}
         transparent={true}
@@ -305,7 +347,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#0D0D1A",
-    paddingTop: 50,
+    paddingTop: 60,
+    paddingBottom: 10,
   },
   header: {
     flexDirection: 'row',
@@ -391,15 +434,16 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   dateText: {
-    fontSize: 18,
+    fontSize: 8,
     color: "#fff",
-    marginBottom: 20,
   },
   addButton: {
     backgroundColor: "#3a86ff",
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 25,
+    marginTop: 20,
+    marginBottom: 10,
   },
   addButtonText: {
     color: "#fff",
@@ -410,6 +454,12 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0, 0, 0, 0.7)",
     justifyContent: "center",
     alignItems: "center",
+  },
+  dreamText: {
+    fontSize: 16,
+    color: "#fff",
+    textAlign: "center",
+    marginBottom: 20,
   },
   calendarModal: {
     width: "85%",

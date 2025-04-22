@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "dreambook",
-    "slug": "dreambook",
+    "slug": "dream-book",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -15,7 +15,8 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "xyz.kijmoshi.dreambook"
     },
     "web": {
       "bundler": "metro",
@@ -33,10 +34,25 @@
           "backgroundColor": "#ffffff"
         }
       ],
-      "expo-sqlite"
+      "expo-sqlite",
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow $(PRODUCT_NAME) to use your location."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "779eba73-087e-4575-a6b2-d36d0fac4263"
+      }
+    },
+    "owner": "kijmoshi"
   }
 }
