@@ -92,6 +92,17 @@ export default function App() {
         created_at TEXT NOT NULL
       );
     `);
+
+    await db.execAsync(`
+      CREATE TABLE IF NOT EXISTS list (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        icon TEXT NOT NULL,
+        color TEXT NOT NULL,
+        created_at TEXT NOT NULL
+      );
+      
+      `)
   };
 
   const refreshData = useCallback(() => {

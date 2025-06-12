@@ -13,6 +13,11 @@ interface Dream {
     notes: string;
     tags: string;
     created_at: string;
+
+    addToList: () => void;
+    removeFromList: () => void;
+    edit: () => void;
+    delete: () => void;
 }
 
 export const useDay = (currentDate: Date) => {
@@ -34,6 +39,7 @@ export const useDay = (currentDate: Date) => {
     
     useEffect(() => {
         (async () => {
+
             if(!db || !currentDate) return;
 
             const formattedDate = currentDate.toISOString().split("T")[0];

@@ -59,6 +59,7 @@ export default function DreamEntryModal() {
       
       // Open the database
       const db = await SQLite.openDatabaseAsync("database.db");
+
       
       // First, make sure the table exists
       await db.execAsync(`
